@@ -233,7 +233,7 @@ void Symulacja(Pracownik* pracownicy, int liczbaPracownikow) {
         }
         
         printf("\n\n\n");
-        printf("Srednia rozmowy wynosi: %f", suma_srednich_czasu_rozmowy / licznik);
+        printf("Srednia rozmowy wynosi: %0.2f min", suma_srednich_czasu_rozmowy / licznik);
         printf("\n\n\n");
         ZliczRozmowy(pracownicy, liczbaPracownikow);
 }
