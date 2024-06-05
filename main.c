@@ -16,44 +16,45 @@ void utworzPracownikow(Pracownik* pracownicy, int rozmiar) {
     for (int i = 0; i < rozmiar; i++) {
         snprintf(pracownicy[i].Imie, sizeof(pracownicy[i].Imie), "%s", imiona[i]);
         pracownicy[i].Identyfikator = i + 1;
-        pracownicy[i].Dostepnosc = wolny; 
-        pracownicy[i].CzasRozmowy = 0.0;     
+        pracownicy[i].Dostepnosc = wolny;
+        pracownicy[i].CzasRozmowy = 0.0;
+        pracownicy[i].LiczbaRozmow = 0; //zmiana
     }
 
 }
 //Funkcja generuje losowa dlugosc polaczenia zgodnie z rozkladem normalnym
 double DlugoscPolaczen() {
 
-	double u1;
-	double u2;
-	double p;
+    double u1;
+    double u2;
+    double p;
 
-	do {
+    do {
 
-		u1 = (double)rand() / RAND_MAX;
-		u2 = (double)rand() / RAND_MAX;
-		p = sqrt(-2 * log(u1)) * cos(2 * PI * u2) * 100;
+        u1 = (double)rand() / RAND_MAX;
+        u2 = (double)rand() / RAND_MAX;
+        p = sqrt(-2 * log(u1)) * cos(2 * PI * u2) * 100;
 
-	} while (p <= 0 || p > 120);
+    } while (p <= 0 || p > 120);
 
-	return p;
+    return p;
 }
 
 //Funkcja generuje losowa ilosc przychodzacych polaczen zgodnie z rozkladem Poissona
 int PrzychodzacePolaczenia() {
 
-	int lambda = 2;
-	double limit = exp(-lambda);
-	double p = 1;
-	int i = 0;
+    int lambda = 2;
+    double limit = exp(-lambda);
+    double p = 1;
+    int i = 0;
 
-	do {
-		i++;
-		p *= (double)rand() / RAND_MAX;
+    do {
+        i++;
+        p *= (double)rand() / RAND_MAX;
 
-	} while (p > limit);
+    } while (p > limit);
 
-	return i;
+    return i;
 
 }
 
@@ -141,6 +142,7 @@ int ObslugaPolaczen(Pracownik* pracownicy, int LiczbaPracownikow, Kolejka** kole
 
                 pracownicy[j].Dostepnosc = zajety;
                 pracownicy[j].CzasRozmowy = DlugoscPolaczen();
+                pracownicy[j].LiczbaRozmow++;//zmiana
 
                 pracownikZnaleziony = 1;
                 break;
@@ -158,98 +160,84 @@ int ObslugaPolaczen(Pracownik* pracownicy, int LiczbaPracownikow, Kolejka** kole
 
 }
 
+//Funkcja potrzebna do danych statystycznych, sprawdza ile rozmow przeprowadzil kazdy pracownik
+void ZliczRozmowy(Pracownik* pracownicy, int LiczbaPracownikow) {
+    int liczbaWszystkichRozmow = 0;
+    for (int i = 0; i < LiczbaPracownikow; i++) {
+        printf("Pracownik %d (%s) przeprowadzil %d rozmow\n", pracownicy[i].Identyfikator, pracownicy[i].Imie, pracownicy[i].LiczbaRozmow);
+        liczbaWszystkichRozmow += pracownicy[i].LiczbaRozmow;
+    }
+    printf("Laczna liczba rozmow: %d\n", liczbaWszystkichRozmow);
+}
+
 //Funkcja zbiera dane dotyczace sredniej dlugosci polaczenia potrzebne do statystyk
 //Funkcja sprawdza, czy dany pracownik zakonczyl juz rozmowe z klientem, jesli tak - ustawia jego status na "wolny"
 //Funkcja sprawdza, czy ktos stoi w kolejce, jesli tak, przypisuje klientow do wolnych pracownikow
-double SprawdzPracownikow(Pracownik* pracownicy, int LiczbaPracownikow, Kolejka** kolejka) {
+void SprawdzPracownikow(Pracownik* pracownicy, int LiczbaPracownikow, Kolejka** kolejka) {
 
     double suma_rozmow = 0;
-    double srednia;
     int przejecie = 0;
 
     for (int i = 0; i < LiczbaPracownikow; i++) {
 
-        if (pracownicy[i].Dostepnosc = zajety && pracownicy[i].CzasRozmowy <= 0) {
-            pracownicy[i].Dostepnosc = wolny;
         
+        if (pracownicy[i].Dostepnosc == zajety && pracownicy[i].CzasRozmowy <= 0) {
+            pracownicy[i].Dostepnosc = wolny;
         }
 
-        if (*kolejka != NULL) {
-
+        
+        if (pracownicy[i].Dostepnosc == wolny && *kolejka != NULL) {
             przejecie++;
             int IdKlienta = (*kolejka)->data;
-
             UsunElementZPoczatkuKolejki(kolejka);
-
             pracownicy[i].Dostepnosc = zajety;
             pracownicy[i].CzasRozmowy = DlugoscPolaczen();
-
+            pracownicy[i].LiczbaRozmow++;
             suma_rozmow += pracownicy[i].CzasRozmowy;
-
-            printf("Pracownik %d przejal klienta %d z kolejki, rozmowa bedzie trwac %.02f min\n", pracownicy[i].Identyfikator, IdKlienta, pracownicy[i].CzasRozmowy);
-
-    
+            printf("Pracownik %d przejal klienta %d z kolejki, rozmowa będzie trwać %.02f min\n", pracownicy[i].Identyfikator, IdKlienta, pracownicy[i].CzasRozmowy);
         }
-
-
-    }
-    if (przejecie > 0) {
-        srednia = suma_rozmow / przejecie;
-    }
-    else {
-        srednia = 0;
     }
 
-    return srednia;
     
+    if (przejecie > 0) {
+        printf("Średni czas rozmowy dla przejętych klientów: %.2f min\n", suma_rozmow / przejecie);
+    }
 }
 
-
-//Funkcja symuluje uplyw czasu i wypisuje stan kolejki przez 8 godzin co 15 minut
-//Liczy statystyki dotyczace dlugosci przeprowadzanych rozmow
+//Funkcja symuluje uplyw czasu
 void Symulacja(Pracownik* pracownicy, int liczbaPracownikow) {
 
-
     Kolejka* kolejka = NULL;
-    int IdKlientaCounter = 0;
+    int IdKlientaCounter = 1;
     double suma_srednich_czasu_rozmowy = 0;
     int licznik = 0;
 
     for (int t = 0; t < 480; t += 15) {
-
         licznik++;
-
         printf("Kolejka po %d min: ", t);
-
         IdKlientaCounter = ObslugaPolaczen(pracownicy, liczbaPracownikow, &kolejka, IdKlientaCounter);
-
         WypiszKolejke(kolejka);
-
         printf("\n");
 
         for (int i = 0; i < liczbaPracownikow; i++) {
-            if (pracownicy[i].Dostepnosc = zajety) {
+            if (pracownicy[i].Dostepnosc == zajety) {
                 pracownicy[i].CzasRozmowy -= 15;
             }
         }
-        
-        
-        double temp = SprawdzPracownikow(pracownicy, liczbaPracownikow, &kolejka);
-        suma_srednich_czasu_rozmowy += temp;
-      
+
+        SprawdzPracownikow(pracownicy, liczbaPracownikow, &kolejka);
     }
 
     printf("\n\n\n");
-    printf("Sredni czas rozmowy wynosi: %0.2f min\n\n", suma_srednich_czasu_rozmowy / licznik);
-    
-
-
+    printf("Symulacja zakończona.\n");
+    ZliczRozmowy(pracownicy, liczbaPracownikow);
 }
+
 
 //Funkcja odpowiedzialna za wyswietlanie strony startowej, mozliwosc wyboru wyswietlenia symulacji/pracownikow
 void tekst_startowy(Pracownik* pracownicy, int liczbaPracownikow) {
 
-   
+
 
     while (1) {
         printf("Witamy w centrali telefonicznej\n\n\n   Jak mozemy ci pomoc? \n\n");
@@ -257,13 +245,13 @@ void tekst_startowy(Pracownik* pracownicy, int liczbaPracownikow) {
 
         while (1) {
             char przycisk = _getch();
-            
+
             if (isalpha(przycisk)) {
                 printf("Wpisano litere, wpisz liczbe i sproboj ponownie.\n\n");
                 continue;
             }
 
-            
+
             switch (przycisk) {
             case '1':
                 system("cls");
@@ -305,7 +293,7 @@ void tekst_startowy(Pracownik* pracownicy, int liczbaPracownikow) {
                     default:
                         system("cls");
                         printf("Wprowadzono bledna liczbe. Sproboj ponownie.\n\n");
-                        
+
                         continue;
                     }
                     break;
@@ -347,6 +335,8 @@ void tekst_startowy(Pracownik* pracownicy, int liczbaPracownikow) {
     }
 }
 
+
+
 int main() {
 
     srand((unsigned int)time(0));
@@ -355,5 +345,6 @@ int main() {
     utworzPracownikow(pracownicy, 10);
 
     tekst_startowy(pracownicy, 10);
+
 
 }
