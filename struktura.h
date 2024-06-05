@@ -6,15 +6,16 @@ typedef enum {
 	zajety, wolny
 }av;
 
-
 typedef struct {
-	
+
 	char Imie[20];
 	int Identyfikator;
 	av Dostepnosc;
 	double CzasRozmowy;
+	int LiczbaRozmow;
 
 }Pracownik;
+
 
 typedef struct {
 
@@ -29,3 +30,5 @@ typedef struct Kolejka{
 	struct Kolejka* nastepny;
 
 } Kolejka;
+
+
