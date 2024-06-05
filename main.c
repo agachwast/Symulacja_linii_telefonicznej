@@ -173,19 +173,19 @@ void ZliczRozmowy(Pracownik* pracownicy, int LiczbaPracownikow) {
 //Funkcja zbiera dane dotyczace sredniej dlugosci polaczenia potrzebne do statystyk
 //Funkcja sprawdza, czy dany pracownik zakonczyl juz rozmowe z klientem, jesli tak - ustawia jego status na "wolny"
 //Funkcja sprawdza, czy ktos stoi w kolejce, jesli tak, przypisuje klientow do wolnych pracownikow
-void SprawdzPracownikow(Pracownik* pracownicy, int LiczbaPracownikow, Kolejka** kolejka) {
+double SprawdzPracownikow(Pracownik* pracownicy, int LiczbaPracownikow, Kolejka** kolejka) {
 
     double suma_rozmow = 0;
     int przejecie = 0;
 
     for (int i = 0; i < LiczbaPracownikow; i++) {
 
-        
+
         if (pracownicy[i].Dostepnosc == zajety && pracownicy[i].CzasRozmowy <= 0) {
             pracownicy[i].Dostepnosc = wolny;
         }
 
-        
+
         if (pracownicy[i].Dostepnosc == wolny && *kolejka != NULL) {
             przejecie++;
             int IdKlienta = (*kolejka)->data;
@@ -194,157 +194,162 @@ void SprawdzPracownikow(Pracownik* pracownicy, int LiczbaPracownikow, Kolejka** 
             pracownicy[i].CzasRozmowy = DlugoscPolaczen();
             pracownicy[i].LiczbaRozmow++;
             suma_rozmow += pracownicy[i].CzasRozmowy;
-            printf("Pracownik %d przejal klienta %d z kolejki, rozmowa będzie trwać %.02f min\n", pracownicy[i].Identyfikator, IdKlienta, pracownicy[i].CzasRozmowy);
+            printf("Pracownik %d przejal klienta %d z kolejki, rozmowa bedzie trwac %.02f min\n", pracownicy[i].Identyfikator, IdKlienta, pracownicy[i].CzasRozmowy);
         }
     }
 
-    
+
     if (przejecie > 0) {
-        printf("Średni czas rozmowy dla przejętych klientów: %.2f min\n", suma_rozmow / przejecie);
+        return suma_rozmow / przejecie;
     }
-}
+    else {
+        return 0;
+    }
+
+}    
 
 //Funkcja symuluje uplyw czasu
 void Symulacja(Pracownik* pracownicy, int liczbaPracownikow) {
 
-    Kolejka* kolejka = NULL;
-    int IdKlientaCounter = 1;
-    double suma_srednich_czasu_rozmowy = 0;
-    int licznik = 0;
+        Kolejka* kolejka = NULL;
+        int IdKlientaCounter = 1;
+        double suma_srednich_czasu_rozmowy = 0;
+        int licznik = 0;
 
-    for (int t = 0; t < 480; t += 15) {
-        licznik++;
-        printf("Kolejka po %d min: ", t);
-        IdKlientaCounter = ObslugaPolaczen(pracownicy, liczbaPracownikow, &kolejka, IdKlientaCounter);
-        WypiszKolejke(kolejka);
-        printf("\n");
+        for (int t = 0; t < 480; t += 15) {
+            licznik++;
+            printf("Kolejka po %d min: ", t);
+            IdKlientaCounter = ObslugaPolaczen(pracownicy, liczbaPracownikow, &kolejka, IdKlientaCounter);
+            WypiszKolejke(kolejka);
+            printf("\n");
 
-        for (int i = 0; i < liczbaPracownikow; i++) {
-            if (pracownicy[i].Dostepnosc == zajety) {
-                pracownicy[i].CzasRozmowy -= 15;
+            for (int i = 0; i < liczbaPracownikow; i++) {
+                if (pracownicy[i].Dostepnosc == zajety) {
+                    pracownicy[i].CzasRozmowy -= 15;
+                }
             }
+
+            suma_srednich_czasu_rozmowy += SprawdzPracownikow(pracownicy, liczbaPracownikow, &kolejka);
         }
-
-        SprawdzPracownikow(pracownicy, liczbaPracownikow, &kolejka);
-    }
-
-    printf("\n\n\n");
-    printf("Symulacja zakończona.\n");
-    ZliczRozmowy(pracownicy, liczbaPracownikow);
+        
+        printf("\n\n\n");
+        printf("Srednia rozmowy wynosi: %f", suma_srednich_czasu_rozmowy / licznik);
+        printf("\n\n\n");
+        ZliczRozmowy(pracownicy, liczbaPracownikow);
 }
 
 
-//Funkcja odpowiedzialna za wyswietlanie strony startowej, mozliwosc wyboru wyswietlenia symulacji/pracownikow
-void tekst_startowy(Pracownik* pracownicy, int liczbaPracownikow) {
+    //Funkcja odpowiedzialna za wyswietlanie strony startowej, mozliwosc wyboru wyswietlenia symulacji/pracownikow
+    void tekst_startowy(Pracownik * pracownicy, int liczbaPracownikow) {
 
 
-
-    while (1) {
-        printf("Witamy w centrali telefonicznej\n\n\n   Jak mozemy ci pomoc? \n\n");
-        printf(" 1. Symulacja\n 2. Lista pracownikow \n 3. Wyjscie\n");
 
         while (1) {
-            char przycisk = _getch();
+            printf("Witamy w centrali telefonicznej\n\n\n   Jak mozemy ci pomoc? \n\n");
+            printf(" 1. Symulacja\n 2. Lista pracownikow \n 3. Wyjscie\n");
 
-            if (isalpha(przycisk)) {
-                printf("Wpisano litere, wpisz liczbe i sproboj ponownie.\n\n");
-                continue;
-            }
+            while (1) {
+                char przycisk = _getch();
+
+                if (isalpha(przycisk)) {
+                    printf("Wpisano litere, wpisz liczbe i sproboj ponownie.\n\n");
+                    continue;
+                }
 
 
-            switch (przycisk) {
-            case '1':
-                system("cls");
-                printf("Wybrano: \n * Generator liczb *\n\n");
-                Symulacja(pracownicy, liczbaPracownikow);
-                printf("Powrot do menu.\n\n");
-                printf("---------------\n\n\n");
-                break;
-            case '2':
-                system("cls");
-                printf("Wybrano: \n * Lista pracownikow *\n\n");
+                switch (przycisk) {
+                case '1':
+                    system("cls");
+                    printf("Wybrano: \n * Generator liczb *\n\n");
+                    Symulacja(pracownicy, liczbaPracownikow);
+                    printf("Powrot do menu.\n\n");
+                    printf("---------------\n\n\n");
+                    break;
+                case '2':
+                    system("cls");
+                    printf("Wybrano: \n * Lista pracownikow *\n\n");
 
-                while (1) {
-                    printf("Czy chcesz wyswietlic liste pracownikow? \n\n");
-                    printf("1. Tak\n2. Nie\n\n");
+                    while (1) {
+                        printf("Czy chcesz wyswietlic liste pracownikow? \n\n");
+                        printf("1. Tak\n2. Nie\n\n");
 
-                    char wybor = _getch();
+                        char wybor = _getch();
 
-                    if (isalpha(wybor)) {
-                        printf("Wpisano litere, wpisz liczbe i sproboj ponownie.\n\n");
-                        continue;
-                    }
-
-                    switch (wybor) {
-                    case '1':
-                        system("cls");
-                        printf("Lista pracownikow: \n\n");
-                        for (int i = 0; i < liczbaPracownikow; i++) {
-                            printf("%s\n", pracownicy[i].Imie);
+                        if (isalpha(wybor)) {
+                            printf("Wpisano litere, wpisz liczbe i sproboj ponownie.\n\n");
+                            continue;
                         }
-                        printf("\nPowrot do menu.\n\n\n");
-                        printf("---------------\n\n\n");
-                        break;
-                    case '2':
-                        system("cls");
-                        printf("Powrot do menu.\n\n\n");
-                        printf("---------------\n\n\n");
-                        break;
-                    default:
-                        system("cls");
-                        printf("Wprowadzono bledna liczbe. Sproboj ponownie.\n\n");
 
-                        continue;
+                        switch (wybor) {
+                        case '1':
+                            system("cls");
+                            printf("Lista pracownikow: \n\n");
+                            for (int i = 0; i < liczbaPracownikow; i++) {
+                                printf("%s\n", pracownicy[i].Imie);
+                            }
+                            printf("\nPowrot do menu.\n\n\n");
+                            printf("---------------\n\n\n");
+                            break;
+                        case '2':
+                            system("cls");
+                            printf("Powrot do menu.\n\n\n");
+                            printf("---------------\n\n\n");
+                            break;
+                        default:
+                            system("cls");
+                            printf("Wprowadzono bledna liczbe. Sproboj ponownie.\n\n");
+
+                            continue;
+                        }
+                        break;
                     }
                     break;
-                }
-                break;
 
-            case '3':
-                system("cls");
-                while (1) {
-                    printf("Czy na pewno chcesz opuscic program?\n\n");
-                    printf("1. Tak\n2. Nie\n\n");
-                    char odp = _getch();
-                    if (isalpha(odp)) {
-                        printf("Wpisano litere, wpisz liczbe i sproboj ponownie.\n\n");
-                        continue;
-                    }
-                    switch (odp) {
-                    case '1':
-                        printf("Wyjscie z programu\n\n");
-                        return;
-                    case '2':
-                        printf("Powrot do menu.\n\n\n");
-                        printf("---------------\n\n\n");
+                case '3':
+                    system("cls");
+                    while (1) {
+                        printf("Czy na pewno chcesz opuscic program?\n\n");
+                        printf("1. Tak\n2. Nie\n\n");
+                        char odp = _getch();
+                        if (isalpha(odp)) {
+                            printf("Wpisano litere, wpisz liczbe i sproboj ponownie.\n\n");
+                            continue;
+                        }
+                        switch (odp) {
+                        case '1':
+                            printf("Wyjscie z programu\n\n");
+                            return;
+                        case '2':
+                            printf("Powrot do menu.\n\n\n");
+                            printf("---------------\n\n\n");
+                            break;
+                        default:
+                            printf("Wprowadzono bledna liczbe. Sproboj ponownie.\n");
+                            continue;
+                        }
                         break;
-                    default:
-                        printf("Wprowadzono bledna liczbe. Sproboj ponownie.\n");
-                        continue;
                     }
                     break;
+                default:
+
+                    printf("Wprowadzono bledna liczbe. Sproboj ponownie.\n\n");
+                    continue;
                 }
                 break;
-            default:
-
-                printf("Wprowadzono bledna liczbe. Sproboj ponownie.\n\n");
-                continue;
             }
-            break;
         }
     }
-}
 
 
 
-int main() {
+    int main() {
 
-    srand((unsigned int)time(0));
+        srand((unsigned int)time(0));
 
-    Pracownik pracownicy[10];
-    utworzPracownikow(pracownicy, 10);
+        Pracownik pracownicy[10];
+        utworzPracownikow(pracownicy, 10);
 
-    tekst_startowy(pracownicy, 10);
+        tekst_startowy(pracownicy, 10);
 
 
-}
+    }
