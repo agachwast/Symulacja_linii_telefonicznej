@@ -8,6 +8,7 @@
 
 #define PI 3.14159
 
+//Funkcja odpowiedzialna za stworzenie 10 pracownikow, ustawienie ich identyfikatorów i początkowej dostępności
 void utworzPracownikow(Pracownik* pracownicy, int rozmiar) {
 
     char* imiona[10] = { "Alicja", "Agata", "Marek", "Janusz", "Piotr", "Ewelina", "Tomasz", "Maria", "Magda", "Grzegorz" };
@@ -20,7 +21,7 @@ void utworzPracownikow(Pracownik* pracownicy, int rozmiar) {
     }
 
 }
-
+//Funkcja generuje losowa dlugosc polaczenia zgodnie z rozkladem normalnym
 double DlugoscPolaczen() {
 
 	double u1;
@@ -38,6 +39,7 @@ double DlugoscPolaczen() {
 	return p;
 }
 
+//Funkcja generuje losowa ilosc przychodzacych polaczen zgodnie z rozkladem Poissona
 int PrzychodzacePolaczenia() {
 
 	int lambda = 2;
@@ -55,6 +57,7 @@ int PrzychodzacePolaczenia() {
 
 }
 
+//Funkcja dodaje elementy na koniec kolejki
 void DodajDoKolejki(Kolejka** head, int number) {
     if (*head == NULL) {
         *head = (Kolejka*)malloc(sizeof(Kolejka));
@@ -80,6 +83,7 @@ void DodajDoKolejki(Kolejka** head, int number) {
     }
 }
 
+//Funkcja usuwa element z poczatku kolejki
 void UsunElementZPoczatkuKolejki(Kolejka** head) {
     Kolejka* temp = NULL;
     if (*head != NULL) {
@@ -89,6 +93,7 @@ void UsunElementZPoczatkuKolejki(Kolejka** head) {
     }
 }
 
+//Funkcja wypisuje cala kolejke
 void WypiszKolejke(Kolejka* head) {
 
     if (head == NULL) {
@@ -104,6 +109,7 @@ void WypiszKolejke(Kolejka* head) {
     }
 }
 
+//Funkcja zwraca wartosc dlugosci kolejki
 int DlugoscKolejki(Kolejka* head) {
     int counter = 0;
     while (head != NULL) {
@@ -113,6 +119,9 @@ int DlugoscKolejki(Kolejka* head) {
     return counter;
 }
 
+//Funkcja generuje przychodze polaczenua za pomoca PrzychodzacePolaczenia(), tworzy klientow, nadaje im identyfikator i przypisuje klienta do danego polaczenia
+//Funkcja sprawdza dostepnosc pracownikow, jesli znajdzie dostepnego, przypisuje go do klienta, jesli nie, dodaje klienta do kolejki
+//Funkcja zwraca idklienta, aby po nastepnym wywolaniu idklienta nie zaczynalo sie od 0, a od wartosci na ktorej zakonczylo sie ostatnie wywolanie funkcji
 int ObslugaPolaczen(Pracownik* pracownicy, int LiczbaPracownikow, Kolejka** kolejka, int idKlientaCounter) {
 
     int liczbaPolaczen = PrzychodzacePolaczenia();
@@ -149,6 +158,9 @@ int ObslugaPolaczen(Pracownik* pracownicy, int LiczbaPracownikow, Kolejka** kole
 
 }
 
+//Funkcja zbiera dane dotyczace sredniej dlugosci polaczenia potrzebne do statystyk
+//Funkcja sprawdza, czy dany pracownik zakonczyl juz rozmowe z klientem, jesli tak - ustawia jego status na "wolny"
+//Funkcja sprawdza, czy ktos stoi w kolejce, jesli tak, przypisuje klientow do wolnych pracownikow
 double SprawdzPracownikow(Pracownik* pracownicy, int LiczbaPracownikow, Kolejka** kolejka) {
 
     double suma_rozmow = 0;
@@ -192,6 +204,9 @@ double SprawdzPracownikow(Pracownik* pracownicy, int LiczbaPracownikow, Kolejka*
     
 }
 
+
+//Funkcja symuluje uplyw czasu i wypisuje stan kolejki przez 8 godzin co 15 minut
+//Liczy statystyki dotyczace dlugosci przeprowadzanych rozmow
 void Symulacja(Pracownik* pracownicy, int liczbaPracownikow) {
 
 
@@ -231,6 +246,7 @@ void Symulacja(Pracownik* pracownicy, int liczbaPracownikow) {
 
 }
 
+//Funkcja odpowiedzialna za wyswietlanie strony startowej, mozliwosc wyboru wyswietlenia symulacji/pracownikow
 void tekst_startowy(Pracownik* pracownicy, int liczbaPracownikow) {
 
    
